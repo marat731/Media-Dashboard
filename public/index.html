@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Competitor Analysis Dashboard | Molly's Suds</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-dark: #181a22;
+      --primary-light: #ffffff;
+      --secondary: #3e30f4;
+      --tertiary: #e8fe53;
+      --card-bg: #1f2129;
+      --card-border: #2a2d38;
+      --text-muted: #8b8d97;
+      --positive: #22c55e;
+      --negative: #ef4444;
+      --new: #3e30f4;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--primary-dark);
+      color: var(--primary-light);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--secondary);
+      color: var(--primary-light);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .report-date {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--tertiary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 600px;
+    }
+
+    .time-period {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .time-period svg {
+      width: 16px;
+      height: 16px;
+      color: var(--tertiary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card.highlight {
+      border-color: var(--secondary);
+      background: linear-gradient(135deg, var(--card-bg) 0%, rgba(62, 48, 244, 0.1) 100%);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value.accent {
+      color: var(--tertiary);
+    }
+
+    .stat-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+    }
+
+    .stat-change.positive {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--positive);
+    }
+
+    .stat-change.negative {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--negative);
+    }
+
+    /* Charts Section */
+    .charts-section {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 1024px) {
+      .charts-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Property Table */
+    .table-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+
+    .table-header {
+      padding: 1.75rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .table-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.9375rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(62, 48, 244, 0.05);
+    }
+
+    .property-name {
+      font-weight: 600;
+    }
+
+    .media-owner {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      margin-top: 0.25rem;
+    }
+
+    .spend-value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    .trend-badge.positive {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--positive);
+    }
+
+    .trend-badge.negative {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--negative);
+    }
+
+    .trend-badge.new {
+      background: rgba(62, 48, 244, 0.2);
+      color: var(--secondary);
+    }
+
+    .type-badge {
+      display: inline-flex;
+      padding: 0.25rem 0.625rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(232, 254, 83, 0.15);
+      color: var(--tertiary);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 2rem 0;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .footer-brand {
+      font-weight: 600;
+      color: var(--primary-light);
+    }
+
+    /* Spend Bar in Table */
+    .spend-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .spend-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--card-border);
+      border-radius: 4px;
+      overflow: hidden;
+      max-width: 150px;
+    }
+
+    .spend-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--secondary) 0%, var(--tertiary) 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      th, td {
+        padding: 0.75rem 1rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .stat-card, .chart-card, .table-section {
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-top">
+        <span class="brand-tag">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          </svg>
+          Competitor Intelligence
+        </span>
+        <span class="report-date">Report Generated: January 15, 2026</span>
+      </div>
+      <h1>Molly's Suds</h1>
+      <p class="header-subtitle">Digital advertising spend analysis across all tracked properties and platforms. Data sourced from MediaRadar.</p>
+      <div class="time-period">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        Jan 2025 - Dec 2025 vs Jan 2024 - Dec 2024
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-label">Total Ad Spend</div>
+        <div class="stat-value accent">$6.73M</div>
+        <span class="stat-change positive">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          +1% YoY
+        </span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Properties</div>
+        <div class="stat-value">8</div>
+        <span class="stat-change positive">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          4 new this year
+        </span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top Channel</div>
+        <div class="stat-value">Amazon</div>
+        <span class="stat-change negative">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+          -4% YoY
+        </span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fastest Growing</div>
+        <div class="stat-value">Facebook</div>
+        <span class="stat-change positive">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          +188% YoY
+        </span>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Spend by Property</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="spendChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Spend Distribution</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="distributionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Table -->
+    <div class="table-section">
+      <div class="table-header">
+        <h3 class="table-title">Property Breakdown</h3>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Digital Spend</th>
+              <th>Share of Spend</th>
+              <th>YoY Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="property-name">Amazon.com</div>
+                <div class="media-owner">Amazon.com, Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$6,273,498</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>93.3%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 93.3%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge negative">-4%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Walmart.com</div>
+                <div class="media-owner">Walmart Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$333,709</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>5.0%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 50%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge positive">+64%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Barstool Sports, Inc.</div>
+                <div class="media-owner">Barstool Sports, Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$64,000</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>1.0%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 10%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge new">NEW</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Target</div>
+                <div class="media-owner">Target Corporation</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$36,152</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>0.5%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 5%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge positive">+138%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Costco.com</div>
+                <div class="media-owner">Costco Wholesale Corporation</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$13,596</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>0.2%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 2%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge new">NEW</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Facebook</div>
+                <div class="media-owner">Meta Platforms, Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$3,022</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>&lt;0.1%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 1%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge positive">+188%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Macy's</div>
+                <div class="media-owner">Macy's, Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$1,420</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>&lt;0.1%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 1%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge new">NEW</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="property-name">Instagram</div>
+                <div class="media-owner">Meta Platforms, Inc.</div>
+              </td>
+              <td><span class="type-badge">B2C</span></td>
+              <td class="spend-value">$1,000</td>
+              <td>
+                <div class="spend-bar-container">
+                  <span>&lt;0.1%</span>
+                  <div class="spend-bar"><div class="spend-bar-fill" style="width: 1%"></div></div>
+                </div>
+              </td>
+              <td><span class="trend-badge new">NEW</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Prepared by <span class="footer-brand">Agency Five Eighty</span> | Data sourced from MediaRadar</p>
+      <p style="margin-top: 0.5rem; font-size: 0.75rem;">Excludes spend on Spot TV, TikTok, Email, Local Radio, Outdoor</p>
+    </footer>
+  </div>
+
+  <script>
+    // Chart.js Configuration
+    Chart.defaults.color = '#8b8d97';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Spend by Property Bar Chart
+    const spendCtx = document.getElementById('spendChart').getContext('2d');
+    new Chart(spendCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Amazon', 'Walmart', 'Barstool', 'Target', 'Costco', 'Facebook', 'Macy\'s', 'Instagram'],
+        datasets: [{
+          label: 'Digital Spend',
+          data: [6273498, 333709, 64000, 36152, 13596, 3022, 1420, 1000],
+          backgroundColor: [
+            'rgba(62, 48, 244, 0.9)',
+            'rgba(62, 48, 244, 0.75)',
+            'rgba(62, 48, 244, 0.6)',
+            'rgba(62, 48, 244, 0.5)',
+            'rgba(62, 48, 244, 0.4)',
+            'rgba(232, 254, 83, 0.8)',
+            'rgba(232, 254, 83, 0.6)',
+            'rgba(232, 254, 83, 0.4)'
+          ],
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1f2129',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#2a2d38',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return '$' + context.raw.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              drawBorder: false
+            },
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+                if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+                return '$' + value;
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+
+    // Distribution Doughnut Chart
+    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    new Chart(distributionCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Amazon', 'Walmart', 'Other'],
+        datasets: [{
+          data: [93.3, 5.0, 1.7],
+          backgroundColor: [
+            '#3e30f4',
+            '#e8fe53',
+            '#2a2d38'
+          ],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1f2129',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#2a2d38',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.raw + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
