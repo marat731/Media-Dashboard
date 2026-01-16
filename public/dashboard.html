@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Competitor Dashboard | Agency Five Eighty</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-dark: #181a22;
+      --primary-light: #ffffff;
+      --secondary: #3e30f4;
+      --tertiary: #e8fe53;
+      --card-bg: #1f2129;
+      --card-border: #2a2d38;
+      --text-muted: #8b8d97;
+      --positive: #22c55e;
+      --negative: #ef4444;
+      --brand-colors: #3e30f4, #e8fe53, #22c55e, #f59e0b, #ec4899;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--primary-dark);
+      color: var(--primary-light);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+    /* Loading State */
+    .loading-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .loading-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--card-border);
+      border-top-color: var(--secondary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Navigation */
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+    .brand-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn:hover { border-color: var(--secondary); color: var(--primary-light); }
+    .tab-btn.active { background: var(--secondary); border-color: var(--secondary); color: var(--primary-light); }
+    .compare-btn, .share-btn, .new-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .compare-btn {
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--tertiary) 100%);
+      color: var(--primary-dark);
+    }
+    .compare-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(62, 48, 244, 0.4); }
+    .compare-btn.active { background: var(--tertiary); }
+    .share-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--primary-light);
+    }
+    .share-btn:hover { border-color: var(--secondary); }
+    .new-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+    }
+    .new-btn:hover { border-color: var(--secondary); color: var(--primary-light); }
+
+    /* Header */
+    .header { margin-bottom: 3rem; }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .brand-tag {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--secondary); color: var(--primary-light);
+      padding: 0.4rem 1rem; border-radius: 100px;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .report-date { color: var(--text-muted); font-size: 0.875rem; }
+    .header h1 {
+      font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--tertiary) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .header-subtitle { color: var(--text-muted); font-size: 1rem; max-width: 600px; }
+    .time-period {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      padding: 0.75rem 1.25rem; border-radius: 8px; margin-top: 1rem; font-size: 0.875rem;
+    }
+    .time-period svg { width: 16px; height: 16px; color: var(--tertiary); }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .stat-card {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+      padding: 1.75rem; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); }
+    .stat-card.highlight { border-color: var(--secondary); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(62, 48, 244, 0.1) 100%); }
+    .stat-label { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+    .stat-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .stat-value.accent { color: var(--tertiary); }
+    .stat-change { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 100px; }
+    .stat-change.positive { background: rgba(34, 197, 94, 0.15); color: var(--positive); }
+    .stat-change.negative { background: rgba(239, 68, 68, 0.15); color: var(--negative); }
+
+    /* Charts */
+    .charts-section { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+    @media (max-width: 1024px) { .charts-section { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.75rem; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .chart-title { font-size: 1.125rem; font-weight: 600; }
+    .chart-container { position: relative; height: 300px; }
+    .chart-container.tall { height: 400px; }
+
+    /* Table */
+    .table-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 3rem; }
+    .table-header { padding: 1.75rem; border-bottom: 1px solid var(--card-border); }
+    .table-title { font-size: 1.125rem; font-weight: 600; }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid var(--card-border); }
+    td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--card-border); font-size: 0.9375rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(62, 48, 244, 0.05); }
+    .property-name { font-weight: 600; }
+    .media-owner { color: var(--text-muted); font-size: 0.8125rem; margin-top: 0.25rem; }
+    .spend-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .trend-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.35rem 0.75rem; border-radius: 100px; font-size: 0.8125rem; font-weight: 600; }
+    .trend-badge.positive { background: rgba(34, 197, 94, 0.15); color: var(--positive); }
+    .trend-badge.negative { background: rgba(239, 68, 68, 0.15); color: var(--negative); }
+    .trend-badge.new { background: rgba(62, 48, 244, 0.2); color: var(--secondary); }
+    .type-badge { display: inline-flex; padding: 0.25rem 0.625rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: rgba(232, 254, 83, 0.15); color: var(--tertiary); }
+    .type-badge.b2b { background: rgba(62, 48, 244, 0.15); color: var(--secondary); }
+    .spend-bar-container { display: flex; align-items: center; gap: 1rem; }
+    .spend-bar { flex: 1; height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; max-width: 150px; }
+    .spend-bar-fill { height: 100%; background: linear-gradient(90deg, var(--secondary) 0%, var(--tertiary) 100%); border-radius: 4px; }
+
+    /* Compare View */
+    .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .brand-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.75rem; position: relative; overflow: hidden; }
+    .brand-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .brand-card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+    .brand-stat { margin-bottom: 1rem; }
+    .brand-stat-label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .brand-stat-value { font-size: 1.5rem; font-weight: 700; }
+    .brand-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+
+    /* Footer */
+    .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.875rem; }
+    .footer-brand { font-weight: 600; color: var(--primary-light); }
+
+    /* View sections */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Share Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+      padding: 2rem; max-width: 500px; width: 90%;
+    }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
+    .modal-subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .share-url-container { display: flex; gap: 0.5rem; }
+    .share-url-input {
+      flex: 1; padding: 0.875rem 1rem; background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border); border-radius: 8px;
+      color: var(--primary-light); font-size: 0.875rem; font-family: inherit;
+    }
+    .copy-btn {
+      padding: 0.875rem 1.5rem; background: var(--secondary); border: none; border-radius: 8px;
+      color: var(--primary-light); font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .copy-btn:hover { background: #5040f0; }
+    .copy-btn.copied { background: var(--positive); }
+    .modal-close {
+      margin-top: 1.5rem; width: 100%; padding: 0.75rem; background: transparent;
+      border: 1px solid var(--card-border); border-radius: 8px; color: var(--text-muted);
+      cursor: pointer; font-family: inherit;
+    }
+    .modal-close:hover { border-color: var(--secondary); color: var(--primary-light); }
+
+    /* View-only banner */
+    .view-only-banner {
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--tertiary) 100%);
+      color: var(--primary-dark); padding: 0.75rem 1.5rem; text-align: center;
+      font-size: 0.875rem; font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .header h1 { font-size: 1.75rem; }
+      .stat-value { font-size: 2rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      th, td { padding: 0.75rem 1rem; }
+      .nav-bar { flex-direction: column; align-items: stretch; }
+      .nav-right { justify-content: flex-end; }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card, .chart-card, .table-section, .brand-card { animation: fadeInUp 0.5s ease forwards; }
+  </style>
+</head>
+<body>
+  <!-- View-only Banner (hidden by default) -->
+  <div class="view-only-banner" id="viewOnlyBanner" style="display: none;">
+    You are viewing a shared dashboard. This is a read-only view.
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Loading dashboard...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container" id="mainContent" style="display: none;">
+    <!-- Navigation -->
+    <nav class="nav-bar">
+      <div class="nav-left">
+        <div class="brand-tabs" id="brandTabs"></div>
+        <button class="compare-btn" id="compareBtn" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Compare All
+        </button>
+      </div>
+      <div class="nav-right" id="navRight">
+        <button class="share-btn" id="shareBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          Share
+        </button>
+        <a href="/" class="new-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <!-- Brand Views Container -->
+    <div id="brandViews"></div>
+
+    <!-- Compare View -->
+    <div id="compareView" class="view"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Prepared by <span class="footer-brand">Agency Five Eighty</span> | Data sourced from MediaRadar</p>
+      <p style="margin-top: 0.5rem; font-size: 0.75rem;">Excludes spend on Spot TV, TikTok, Email, Local Radio, Outdoor</p>
+    </footer>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal">
+      <h2 class="modal-title">Share Dashboard</h2>
+      <p class="modal-subtitle">Share this link with your clients. They will have view-only access.</p>
+      <div class="share-url-container">
+        <input type="text" class="share-url-input" id="shareUrlInput" readonly>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+      </div>
+      <button class="modal-close" id="modalClose">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Chart.js defaults
+    Chart.defaults.color = '#8b8d97';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Brand colors
+    const brandColors = ['#3e30f4', '#e8fe53', '#22c55e', '#f59e0b', '#ec4899'];
+
+    // State
+    let dashboardData = null;
+    let charts = [];
+    let isViewOnly = false;
+
+    // Helper functions
+    function formatCurrency(value) {
+      if (value >= 1000000) return '$' + (value / 1000000).toFixed(2) + 'M';
+      if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+      return '$' + value.toLocaleString();
+    }
+
+    function getTrendClass(trend) {
+      if (!trend) return '';
+      if (trend.includes('NEW')) return 'new';
+      if (trend.includes('-')) return 'negative';
+      return 'positive';
+    }
+
+    function slugify(str) {
+      return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    // Get dashboard ID from URL
+    function getDashboardId() {
+      const path = window.location.pathname;
+      const match = path.match(/\/(dashboard|view)\/([^\/]+)/);
+      return match ? match[2] : null;
+    }
+
+    // Load dashboard data
+    async function loadDashboard() {
+      const id = getDashboardId();
+      if (!id) {
+        window.location.href = '/';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/dashboards/${id}`);
+        if (!response.ok) throw new Error('Dashboard not found');
+
+        dashboardData = await response.json();
+        isViewOnly = dashboardData.isViewOnly;
+
+        renderDashboard();
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        alert('Dashboard not found');
+        window.location.href = '/';
+      }
+    }
+
+    // Render the dashboard
+    function renderDashboard() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+
+      if (isViewOnly) {
+        document.getElementById('viewOnlyBanner').style.display = 'block';
+        document.getElementById('shareBtn').style.display = 'none';
+        document.querySelector('.new-btn').style.display = 'none';
+      }
+
+      // Update page title
+      document.title = `${dashboardData.name} | Competitor Dashboard`;
+
+      renderTabs();
+      renderBrandViews();
+      if (dashboardData.brands.length > 1) {
+        document.getElementById('compareBtn').style.display = 'flex';
+        renderCompareView();
+      }
+
+      // Show first brand by default
+      showView(slugify(dashboardData.brands[0].name));
+    }
+
+    // Render navigation tabs
+    function renderTabs() {
+      const tabsContainer = document.getElementById('brandTabs');
+      tabsContainer.innerHTML = dashboardData.brands.map((brand, i) => `
+        <button class="tab-btn ${i === 0 ? 'active' : ''}" data-brand="${slugify(brand.name)}">
+          ${brand.name}
+        </button>
+      `).join('');
+
+      // Add click handlers
+      tabsContainer.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.getElementById('compareBtn').classList.remove('active');
+          btn.classList.add('active');
+          showView(btn.dataset.brand);
+        });
+      });
+
+      // Compare button handler
+      document.getElementById('compareBtn').addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('compareBtn').classList.add('active');
+        showView('compare');
+      });
+    }
+
+    // Show a specific view
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const view = document.getElementById(viewId === 'compare' ? 'compareView' : `view-${viewId}`);
+      if (view) view.classList.add('active');
+    }
+
+    // Render individual brand views
+    function renderBrandViews() {
+      const container = document.getElementById('brandViews');
+      container.innerHTML = dashboardData.brands.map((brand, index) => `
+        <div id="view-${slugify(brand.name)}" class="view ${index === 0 ? 'active' : ''}">
+          ${renderBrandHeader(brand)}
+          ${renderBrandStats(brand)}
+          ${renderBrandCharts(brand, index)}
+          ${renderBrandTable(brand)}
+        </div>
+      `).join('');
+
+      // Initialize charts after DOM is ready
+      setTimeout(() => {
+        dashboardData.brands.forEach((brand, index) => {
+          initBrandCharts(brand, index);
+        });
+      }, 100);
+    }
+
+    function renderBrandHeader(brand) {
+      return `
+        <header class="header">
+          <div class="header-top">
+            <span class="brand-tag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+              Competitor Intelligence
+            </span>
+            <span class="report-date">Report: ${dashboardData.name}</span>
+          </div>
+          <h1>${brand.name}</h1>
+          <p class="header-subtitle">Digital advertising spend analysis across all tracked properties and platforms. Data sourced from MediaRadar.</p>
+          <div class="time-period">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Jan 2025 - Dec 2025 vs Jan 2024 - Dec 2024
+          </div>
+        </header>
+      `;
+    }
+
+    function renderBrandStats(brand) {
+      return `
+        <div class="stats-grid">
+          <div class="stat-card highlight">
+            <div class="stat-label">Total Ad Spend</div>
+            <div class="stat-value accent">${formatCurrency(brand.totalSpend)}</div>
+            <span class="stat-change ${getTrendClass(brand.yoyChange)}">${brand.yoyChange} YoY</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Properties</div>
+            <div class="stat-value">${brand.properties}</div>
+            <span class="stat-change positive">${brand.newProperties} new this year</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Top Channel</div>
+            <div class="stat-value">${brand.topChannel?.name || 'N/A'}</div>
+            <span class="stat-change ${getTrendClass(brand.topChannel?.trend)}">${brand.topChannel?.trend || ''}</span>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fastest Growing</div>
+            <div class="stat-value">${brand.fastestGrowing?.name || 'N/A'}</div>
+            <span class="stat-change ${getTrendClass(brand.fastestGrowing?.trend)}">${brand.fastestGrowing?.trend || ''}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBrandCharts(brand, index) {
+      const slug = slugify(brand.name);
+      return `
+        <div class="charts-section">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Spend by Property</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-bar-${slug}"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Spend Distribution</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-pie-${slug}"></canvas>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBrandTable(brand) {
+      const rows = brand.data.slice(0, 15).map(item => {
+        const share = ((item.spend / brand.totalSpend) * 100).toFixed(1);
+        return `
+          <tr>
+            <td>
+              <div class="property-name">${item.property}</div>
+              <div class="media-owner">${item.owner}</div>
+            </td>
+            <td><span class="type-badge ${item.type === 'B2B' ? 'b2b' : ''}">${item.type}</span></td>
+            <td class="spend-value">${formatCurrency(item.spend)}</td>
+            <td>
+              <div class="spend-bar-container">
+                <span>${share}%</span>
+                <div class="spend-bar"><div class="spend-bar-fill" style="width: ${Math.min(share, 100)}%"></div></div>
+              </div>
+            </td>
+            <td><span class="trend-badge ${getTrendClass(item.trend)}">${item.trend}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="table-section">
+          <div class="table-header">
+            <h3 class="table-title">Property Breakdown</h3>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Type</th>
+                  <th>Total Spend</th>
+                  <th>Share of Spend</th>
+                  <th>YoY Trend</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function initBrandCharts(brand, index) {
+      const slug = slugify(brand.name);
+      const color = brandColors[index % brandColors.length];
+      const data = brand.data.slice(0, 10);
+
+      // Bar chart
+      const barCtx = document.getElementById(`chart-bar-${slug}`);
+      if (barCtx) {
+        new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: data.map(d => d.property.substring(0, 15)),
+            datasets: [{
+              data: data.map(d => d.spend),
+              backgroundColor: color + 'cc',
+              borderRadius: 8,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => formatCurrency(v) } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // Pie chart
+      const pieCtx = document.getElementById(`chart-pie-${slug}`);
+      if (pieCtx) {
+        const top3 = data.slice(0, 3);
+        const otherSum = data.slice(3).reduce((sum, d) => sum + d.spend, 0);
+        const pieData = [...top3.map(d => ({ label: d.property, value: d.spend }))];
+        if (otherSum > 0) pieData.push({ label: 'Other', value: otherSum });
+
+        new Chart(pieCtx, {
+          type: 'doughnut',
+          data: {
+            labels: pieData.map(d => d.label),
+            datasets: [{
+              data: pieData.map(d => ((d.value / brand.totalSpend) * 100).toFixed(1)),
+              backgroundColor: [color, '#e8fe53', '#22c55e', '#2a2d38'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
+          }
+        });
+      }
+    }
+
+    // Render compare view
+    function renderCompareView() {
+      const brands = dashboardData.brands;
+      const totalAllBrands = brands.reduce((sum, b) => sum + b.totalSpend, 0);
+
+      const brandCards = brands.map((brand, i) => `
+        <div class="brand-card" style="--brand-color: ${brandColors[i]}">
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${brandColors[i]};"></div>
+          <h3 class="brand-card-title">${brand.name}</h3>
+          <div class="brand-stat">
+            <div class="brand-stat-label">Total Spend</div>
+            <div class="brand-stat-value" style="color: ${brandColors[i]}">${formatCurrency(brand.totalSpend)}</div>
+          </div>
+          <div class="brand-stat">
+            <div class="brand-stat-label">YoY Change</div>
+            <span class="stat-change ${getTrendClass(brand.yoyChange)}">${brand.yoyChange}</span>
+          </div>
+          <div class="brand-stat">
+            <div class="brand-stat-label">Properties</div>
+            <div style="font-size: 1.25rem; font-weight: 700;">${brand.properties}</div>
+          </div>
+          <div class="brand-stat">
+            <div class="brand-stat-label">Top Channel</div>
+            <div style="font-weight: 600;">${brand.topChannel?.name || 'N/A'}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Find common channels
+      const channelMap = {};
+      brands.forEach((brand, i) => {
+        brand.data.forEach(item => {
+          const key = item.property.toLowerCase().replace('.com', '');
+          if (!channelMap[key]) channelMap[key] = { name: item.property, brands: {} };
+          channelMap[key].brands[i] = item.spend;
+        });
+      });
+      const commonChannels = Object.values(channelMap)
+        .filter(c => Object.keys(c.brands).length > 1)
+        .sort((a, b) => {
+          const sumA = Object.values(a.brands).reduce((s, v) => s + v, 0);
+          const sumB = Object.values(b.brands).reduce((s, v) => s + v, 0);
+          return sumB - sumA;
+        })
+        .slice(0, 6);
+
+      const tableRows = commonChannels.map(channel => {
+        const cells = brands.map((_, i) => {
+          const spend = channel.brands[i];
+          return `<td class="spend-value">${spend ? formatCurrency(spend) : '-'}</td>`;
+        }).join('');
+        return `<tr><td class="property-name">${channel.name}</td>${cells}</tr>`;
+      }).join('');
+
+      const tableHeaders = brands.map((b, i) =>
+        `<th><span class="brand-indicator" style="background: ${brandColors[i]}"></span>${b.name}</th>`
+      ).join('');
+
+      document.getElementById('compareView').innerHTML = `
+        <header class="header">
+          <div class="header-top">
+            <span class="brand-tag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              Competitive Comparison
+            </span>
+            <span class="report-date">Report: ${dashboardData.name}</span>
+          </div>
+          <h1>Brand Comparison</h1>
+          <p class="header-subtitle">Side-by-side analysis of all competitor brands' digital advertising spend.</p>
+        </header>
+
+        <div class="compare-grid">${brandCards}</div>
+
+        <div class="charts-section" style="grid-template-columns: 1fr;">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Total Spend Comparison</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="compare-bar-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-section">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Market Share</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="compare-pie-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Channel Comparison</h3>
+            </div>
+            <div class="chart-container tall">
+              <canvas id="compare-channel-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-section">
+          <div class="table-header">
+            <h3 class="table-title">Common Channels Comparison</h3>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Channel</th>${tableHeaders}</tr></thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      // Initialize compare charts
+      setTimeout(initCompareCharts, 100);
+    }
+
+    function initCompareCharts() {
+      const brands = dashboardData.brands;
+      const totalAllBrands = brands.reduce((sum, b) => sum + b.totalSpend, 0);
+
+      // Bar chart
+      new Chart(document.getElementById('compare-bar-chart'), {
+        type: 'bar',
+        data: {
+          labels: brands.map(b => b.name),
+          datasets: [{
+            data: brands.map(b => b.totalSpend),
+            backgroundColor: brands.map((_, i) => brandColors[i]),
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => formatCurrency(v) } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Pie chart
+      new Chart(document.getElementById('compare-pie-chart'), {
+        type: 'doughnut',
+        data: {
+          labels: brands.map(b => b.name),
+          datasets: [{
+            data: brands.map(b => ((b.totalSpend / totalAllBrands) * 100).toFixed(1)),
+            backgroundColor: brands.map((_, i) => brandColors[i]),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
+        }
+      });
+
+      // Channel comparison - get top channels
+      const channelMap = {};
+      brands.forEach((brand, i) => {
+        brand.data.slice(0, 5).forEach(item => {
+          const key = item.property.toLowerCase().replace('.com', '');
+          if (!channelMap[key]) channelMap[key] = { name: item.property, data: new Array(brands.length).fill(0) };
+          channelMap[key].data[i] = item.spend;
+        });
+      });
+      const topChannels = Object.values(channelMap).slice(0, 6);
+
+      new Chart(document.getElementById('compare-channel-chart'), {
+        type: 'bar',
+        data: {
+          labels: topChannels.map(c => c.name.substring(0, 12)),
+          datasets: brands.map((brand, i) => ({
+            label: brand.name,
+            data: topChannels.map(c => c.data[i]),
+            backgroundColor: brandColors[i]
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => formatCurrency(v) } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // Share functionality
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      const id = getDashboardId();
+      try {
+        const response = await fetch(`/api/dashboards/${id}/share`, { method: 'POST' });
+        const data = await response.json();
+
+        const shareUrl = window.location.origin + data.shareUrl;
+        document.getElementById('shareUrlInput').value = shareUrl;
+        document.getElementById('shareModal').classList.add('active');
+      } catch (error) {
+        console.error('Error generating share link:', error);
+        alert('Failed to generate share link');
+      }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const input = document.getElementById('shareUrlInput');
+      input.select();
+      document.execCommand('copy');
+
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+
+    document.getElementById('modalClose').addEventListener('click', () => {
+      document.getElementById('shareModal').classList.remove('active');
+    });
+
+    document.getElementById('shareModal').addEventListener('click', (e) => {
+      if (e.target.id === 'shareModal') {
+        document.getElementById('shareModal').classList.remove('active');
+      }
+    });
+
+    // Initialize
+    loadDashboard();
+  </script>
+</body>
+</html>
