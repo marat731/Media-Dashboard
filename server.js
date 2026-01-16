@@ -42,6 +42,32 @@ const upload = multer({
   }
 });
 
+// Guess company domain from brand name for logo fetching
+function guessDomain(brandName) {
+  // Common suffixes to remove
+  const suffixes = [
+    'inc', 'llc', 'ltd', 'corp', 'corporation', 'company', 'co',
+    'usa', 'us', 'international', 'intl', 'group', 'holdings',
+    'brands', 'products', 'enterprises', 'worldwide'
+  ];
+
+  let domain = brandName.toLowerCase();
+
+  // Remove suffixes
+  for (const suffix of suffixes) {
+    domain = domain.replace(new RegExp(`\\b${suffix}\\.?\\b`, 'gi'), '');
+  }
+
+  // Remove special characters and extra spaces
+  domain = domain
+    .replace(/['']/g, '')           // Remove apostrophes
+    .replace(/[^a-z0-9\s]/g, '')    // Remove special chars
+    .replace(/\s+/g, '')            // Remove spaces
+    .trim();
+
+  return domain ? `${domain}.com` : null;
+}
+
 // Parse Excel file and extract data
 function parseExcelFile(buffer, filename) {
   const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -140,6 +166,7 @@ function parseExcelFile(buffer, filename) {
 
   return {
     name: brandName,
+    domain: guessDomain(brandName),
     totalSpend,
     yoyChange,
     properties: propertyCount,

@@ -65,7 +65,7 @@
     .nav-right { display: flex; align-items: center; gap: 0.75rem; }
     .brand-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .tab-btn {
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1.25rem;
       border: 1px solid var(--card-border);
       background: var(--card-bg);
       color: var(--text-muted);
@@ -75,9 +75,19 @@
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     .tab-btn:hover { border-color: var(--secondary); color: var(--primary-light); }
     .tab-btn.active { background: var(--secondary); border-color: var(--secondary); color: var(--primary-light); }
+    .tab-logo {
+      width: 24px; height: 24px; border-radius: 4px; object-fit: contain; background: #fff;
+    }
+    .tab-logo-fallback {
+      width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: var(--primary-dark);
+    }
     .compare-btn, .share-btn, .new-btn {
       padding: 0.75rem 1.5rem;
       border: none;
@@ -120,8 +130,16 @@
       font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .report-date { color: var(--text-muted); font-size: 0.875rem; }
+    .header-brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .header-logo {
+      width: 56px; height: 56px; border-radius: 12px; object-fit: contain; background: #fff; padding: 4px;
+    }
+    .header-logo-fallback {
+      width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 700; color: var(--primary-dark);
+    }
     .header h1 {
-      font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;
+      font-size: 2.5rem; font-weight: 700;
       background: linear-gradient(135deg, var(--primary-light) 0%, var(--tertiary) 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
@@ -184,7 +202,15 @@
     .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
     .brand-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.75rem; position: relative; overflow: hidden; }
     .brand-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
-    .brand-card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+    .brand-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .brand-card-logo {
+      width: 40px; height: 40px; border-radius: 8px; object-fit: contain; background: #fff; padding: 2px;
+    }
+    .brand-card-logo-fallback {
+      width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 700; color: var(--primary-dark);
+    }
+    .brand-card-title { font-size: 1.25rem; font-weight: 700; }
     .brand-stat { margin-bottom: 1rem; }
     .brand-stat-label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .brand-stat-value { font-size: 1.5rem; font-weight: 700; }
@@ -357,6 +383,34 @@
       return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
 
+    function getInitials(name) {
+      return name.split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    }
+
+    function getLogoUrl(domain) {
+      return domain ? `https://logo.clearbit.com/${domain}` : null;
+    }
+
+    function renderLogo(brand, size = 'tab', colorIndex = 0) {
+      const logoUrl = getLogoUrl(brand.domain);
+      const initials = getInitials(brand.name);
+      const color = brandColors[colorIndex % brandColors.length];
+
+      const sizeClasses = {
+        tab: { img: 'tab-logo', fallback: 'tab-logo-fallback' },
+        header: { img: 'header-logo', fallback: 'header-logo-fallback' },
+        card: { img: 'brand-card-logo', fallback: 'brand-card-logo-fallback' }
+      };
+
+      const classes = sizeClasses[size] || sizeClasses.tab;
+
+      if (logoUrl) {
+        return `<img src="${logoUrl}" alt="${brand.name}" class="${classes.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div class="${classes.fallback}" style="display:none;background:${color};">${initials}</div>`;
+      }
+      return `<div class="${classes.fallback}" style="background:${color};">${initials}</div>`;
+    }
+
     // Get dashboard ID from URL
     function getDashboardId() {
       const path = window.location.pathname;
@@ -417,6 +471,7 @@
       const tabsContainer = document.getElementById('brandTabs');
       tabsContainer.innerHTML = dashboardData.brands.map((brand, i) => `
         <button class="tab-btn ${i === 0 ? 'active' : ''}" data-brand="${slugify(brand.name)}">
+          ${renderLogo(brand, 'tab', i)}
           ${brand.name}
         </button>
       `).join('');
@@ -451,7 +506,7 @@
       const container = document.getElementById('brandViews');
       container.innerHTML = dashboardData.brands.map((brand, index) => `
         <div id="view-${slugify(brand.name)}" class="view ${index === 0 ? 'active' : ''}">
-          ${renderBrandHeader(brand)}
+          ${renderBrandHeader(brand, index)}
           ${renderBrandStats(brand)}
           ${renderBrandCharts(brand, index)}
           ${renderBrandTable(brand)}
@@ -466,7 +521,7 @@
       }, 100);
     }
 
-    function renderBrandHeader(brand) {
+    function renderBrandHeader(brand, index = 0) {
       return `
         <header class="header">
           <div class="header-top">
@@ -478,7 +533,10 @@
             </span>
             <span class="report-date">Report: ${dashboardData.name}</span>
           </div>
-          <h1>${brand.name}</h1>
+          <div class="header-brand">
+            ${renderLogo(brand, 'header', index)}
+            <h1>${brand.name}</h1>
+          </div>
           <p class="header-subtitle">Digital advertising spend analysis across all tracked properties and platforms. Data sourced from MediaRadar.</p>
           <div class="time-period">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -655,7 +713,10 @@
       const brandCards = brands.map((brand, i) => `
         <div class="brand-card" style="--brand-color: ${brandColors[i]}">
           <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${brandColors[i]};"></div>
-          <h3 class="brand-card-title">${brand.name}</h3>
+          <div class="brand-card-header">
+            ${renderLogo(brand, 'card', i)}
+            <h3 class="brand-card-title">${brand.name}</h3>
+          </div>
           <div class="brand-stat">
             <div class="brand-stat-label">Total Spend</div>
             <div class="brand-stat-value" style="color: ${brandColors[i]}">${formatCurrency(brand.totalSpend)}</div>
