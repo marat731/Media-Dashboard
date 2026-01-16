@@ -52,6 +52,55 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Top Header Bar */
+    .top-header {
+      background: var(--secondary);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .agency-branding {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .agency-logo {
+      height: 36px;
+      width: auto;
+    }
+    .header-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .header-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--primary-light);
+      letter-spacing: -0.01em;
+    }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
     /* Navigation */
     .nav-bar {
       display: flex;
@@ -65,12 +114,12 @@
     .nav-right { display: flex; align-items: center; gap: 0.75rem; }
     .brand-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .tab-btn {
-      padding: 0.5rem 1.25rem;
-      border: 1px solid var(--card-border);
-      background: var(--card-bg);
-      color: var(--text-muted);
-      border-radius: 8px;
-      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: 6px;
+      font-size: 0.8125rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -79,20 +128,20 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .tab-btn:hover { border-color: var(--secondary); color: var(--primary-light); }
-    .tab-btn.active { background: var(--secondary); border-color: var(--secondary); color: var(--primary-light); }
+    .tab-btn:hover { background: rgba(255, 255, 255, 0.2); color: var(--primary-light); border-color: rgba(255, 255, 255, 0.3); }
+    .tab-btn.active { background: var(--primary-light); border-color: var(--primary-light); color: var(--secondary); }
     .tab-logo {
-      width: 24px; height: 24px; border-radius: 4px; object-fit: contain; background: #fff;
+      width: 20px; height: 20px; border-radius: 3px; object-fit: contain; background: #fff;
     }
     .tab-logo-fallback {
-      width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-      font-size: 0.7rem; font-weight: 700; color: var(--primary-dark);
+      width: 20px; height: 20px; border-radius: 3px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--primary-dark);
     }
     .compare-btn, .share-btn, .new-btn {
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1rem;
       border: none;
-      border-radius: 8px;
-      font-size: 0.875rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -102,23 +151,24 @@
       gap: 0.5rem;
     }
     .compare-btn {
-      background: linear-gradient(135deg, var(--secondary) 0%, var(--tertiary) 100%);
+      background: var(--tertiary);
       color: var(--primary-dark);
+      border: 1px solid var(--tertiary);
     }
-    .compare-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(62, 48, 244, 0.4); }
-    .compare-btn.active { background: var(--tertiary); }
+    .compare-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(232, 254, 83, 0.4); }
+    .compare-btn.active { background: var(--primary-light); border-color: var(--primary-light); }
     .share-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: var(--primary-light);
     }
-    .share-btn:hover { border-color: var(--secondary); }
+    .share-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
     .new-btn {
-      background: transparent;
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--primary-light);
     }
-    .new-btn:hover { border-color: var(--secondary); color: var(--primary-light); }
+    .new-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
 
     /* Header */
     .header { margin-bottom: 3rem; }
@@ -262,7 +312,38 @@
       font-size: 0.875rem; font-weight: 500;
     }
 
+    /* Mobile Navigation */
+    .mobile-nav {
+      display: none;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: var(--secondary);
+      border-radius: 12px;
+    }
+    .mobile-nav .tab-btn {
+      flex: 1;
+      min-width: 120px;
+      justify-content: center;
+    }
+    .mobile-nav .compare-btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
     /* Responsive */
+    @media (max-width: 1024px) {
+      .mobile-nav { display: flex; }
+      .top-header { padding: 0.75rem 1rem; }
+      .header-left { gap: 1rem; }
+      .agency-branding { gap: 0.75rem; }
+      .agency-logo { height: 28px; }
+      .header-title { font-size: 1rem; }
+      .header-nav { display: none; }
+    }
+
     @media (max-width: 768px) {
       .container { padding: 1rem; }
       .header h1 { font-size: 1.75rem; }
@@ -271,6 +352,9 @@
       th, td { padding: 0.75rem 1rem; }
       .nav-bar { flex-direction: column; align-items: stretch; }
       .nav-right { justify-content: flex-end; }
+      .top-header { flex-direction: column; align-items: flex-start; }
+      .header-right { width: 100%; justify-content: flex-end; }
+      .header-divider { display: none; }
     }
 
     /* Animations */
@@ -290,40 +374,61 @@
     <p>Loading dashboard...</p>
   </div>
 
-  <!-- Main Content -->
-  <div class="container" id="mainContent" style="display: none;">
-    <!-- Navigation -->
-    <nav class="nav-bar">
-      <div class="nav-left">
+  <!-- Top Header Bar -->
+  <header class="top-header" id="topHeader" style="display: none;">
+    <div class="header-left">
+      <div class="agency-branding">
+        <img src="/FiveEighty-Logo.svg" alt="Five Eighty" class="agency-logo">
+        <div class="header-divider"></div>
+        <span class="header-title">Competitive Dashboard</span>
+      </div>
+      <nav class="header-nav">
         <div class="brand-tabs" id="brandTabs"></div>
         <button class="compare-btn" id="compareBtn" style="display: none;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="20" x2="18" y2="10"></line>
             <line x1="12" y1="20" x2="12" y2="4"></line>
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
           Compare All
         </button>
-      </div>
-      <div class="nav-right" id="navRight">
-        <button class="share-btn" id="shareBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-          Share
-        </button>
-        <a href="/" class="new-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          New Dashboard
-        </a>
-      </div>
+      </nav>
+    </div>
+    <div class="header-right" id="navRight">
+      <button class="share-btn" id="shareBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        Share
+      </button>
+      <a href="/" class="new-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container" id="mainContent" style="display: none;">
+
+    <!-- Mobile Navigation (shown on smaller screens) -->
+    <nav class="mobile-nav" id="mobileNav">
+      <div class="brand-tabs" id="mobileBrandTabs"></div>
+      <button class="compare-btn" id="mobileCompareBtn" style="display: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        Compare All
+      </button>
     </nav>
 
     <!-- Brand Views Container -->
@@ -462,6 +567,7 @@
     // Render the dashboard
     function renderDashboard() {
       document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('topHeader').style.display = 'flex';
       document.getElementById('mainContent').style.display = 'block';
 
       if (isViewOnly) {
@@ -477,6 +583,7 @@
       renderBrandViews();
       if (dashboardData.brands.length > 1) {
         document.getElementById('compareBtn').style.display = 'flex';
+        document.getElementById('mobileCompareBtn').style.display = 'flex';
         renderCompareView();
       }
 
@@ -486,29 +593,35 @@
 
     // Render navigation tabs
     function renderTabs() {
-      const tabsContainer = document.getElementById('brandTabs');
-      tabsContainer.innerHTML = dashboardData.brands.map((brand, i) => `
+      const tabsHtml = dashboardData.brands.map((brand, i) => `
         <button class="tab-btn ${i === 0 ? 'active' : ''}" data-brand="${slugify(brand.name)}">
           ${renderLogo(brand, 'tab', i)}
           ${brand.name}
         </button>
       `).join('');
 
-      // Add click handlers
-      tabsContainer.querySelectorAll('.tab-btn').forEach(btn => {
+      // Populate both desktop and mobile tabs
+      document.getElementById('brandTabs').innerHTML = tabsHtml;
+      document.getElementById('mobileBrandTabs').innerHTML = tabsHtml;
+
+      // Add click handlers to all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          document.getElementById('compareBtn').classList.remove('active');
-          btn.classList.add('active');
+          document.querySelectorAll('.compare-btn').forEach(b => b.classList.remove('active'));
+          // Mark both desktop and mobile tabs with same brand as active
+          document.querySelectorAll(`.tab-btn[data-brand="${btn.dataset.brand}"]`).forEach(b => b.classList.add('active'));
           showView(btn.dataset.brand);
         });
       });
 
-      // Compare button handler
-      document.getElementById('compareBtn').addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('compareBtn').classList.add('active');
-        showView('compare');
+      // Compare button handlers (both desktop and mobile)
+      document.querySelectorAll('.compare-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.compare-btn').forEach(b => b.classList.add('active'));
+          showView('compare');
+        });
       });
     }
 
