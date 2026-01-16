@@ -387,12 +387,18 @@
       return name.split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
     }
 
-    function getLogoUrl(domain) {
-      return domain ? `https://logo.clearbit.com/${domain}` : null;
+    // Logo URL sources - try multiple services
+    function getLogoUrls(domain) {
+      if (!domain) return [];
+      return [
+        `https://logo.clearbit.com/${domain}`,
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+        `https://icon.horse/icon/${domain}`
+      ];
     }
 
     function renderLogo(brand, size = 'tab', colorIndex = 0) {
-      const logoUrl = getLogoUrl(brand.domain);
+      const logoUrls = getLogoUrls(brand.domain);
       const initials = getInitials(brand.name);
       const color = brandColors[colorIndex % brandColors.length];
 
@@ -403,9 +409,21 @@
       };
 
       const classes = sizeClasses[size] || sizeClasses.tab;
+      const uniqueId = `logo-${slugify(brand.name)}-${size}-${Math.random().toString(36).substr(2, 5)}`;
 
-      if (logoUrl) {
-        return `<img src="${logoUrl}" alt="${brand.name}" class="${classes.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      if (logoUrls.length > 0) {
+        return `<img id="${uniqueId}" src="${logoUrls[0]}" alt="${brand.name}" class="${classes.img}"
+                data-fallbacks='${JSON.stringify(logoUrls.slice(1))}'
+                onerror="(function(img){
+                  const fallbacks = JSON.parse(img.dataset.fallbacks || '[]');
+                  if (fallbacks.length > 0) {
+                    img.dataset.fallbacks = JSON.stringify(fallbacks.slice(1));
+                    img.src = fallbacks[0];
+                  } else {
+                    img.style.display='none';
+                    img.nextElementSibling.style.display='flex';
+                  }
+                })(this)">
                 <div class="${classes.fallback}" style="display:none;background:${color};">${initials}</div>`;
       }
       return `<div class="${classes.fallback}" style="background:${color};">${initials}</div>`;
